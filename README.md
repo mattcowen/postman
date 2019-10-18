@@ -10,7 +10,7 @@ If you want to automate the creation of applications in Azure AD rather than usi
 
 These scripts have the following prerequisites.
 
-1. A "provisioner" application registered in AAD that has the following permissions. It is this application's responsibility to create applications, assign users and grant consent. <b>It therefore has significant privileges and should be treated as an admin user.</b>
+## 1. A "provisioner" application registered in AAD that has the following permissions. It is this application's responsibility to create applications, assign users and grant consent. <b>It therefore has significant privileges and should be treated as an admin user.</b>
 
 AppRoleAssignment.ReadWrite.All (type "Application")
 
@@ -23,13 +23,13 @@ User.Read (the default type "Delegated")
 
 The provisioner app will authN using client credentials to AAD. I have also used this application for user authN for script 4.3 but this is optional. This script is only used to get an object id of a user which you could get from the portal. If you want to sign in as a user in Postman then you need to add the redirect uri "https://app.getpostman.com/oauth2/callback" to an application registered in AAD.
 
-2. An API application registered in AAD that I called Api1. This needs to have a scope, Api1-User-Access, defined under "Expose an api".
+## 2. An API application registered in AAD that I called Api1. This needs to have a scope, Api1-User-Access, defined under "Expose an api".
 
 When we create an application registration, "new_web1", via these scripts, we will configure new_web1 to have permision to call the Api1. It is this api that we grant user consent for new_web1 to call on behalf of users. 
 
-3. Import the collection json to Postman
+## 3. Import the collection json to Postman
 
-4. Import environment json and update the variables in Postman
+## 4. Import environment json and update the variables in Postman
 
 <b>azuread</b>: change this to your AAD tenant domain.
 
@@ -50,7 +50,7 @@ Run scripts 1 and 2 to set the tokenEndpoint variable automatically. Script 3 wi
 
 Create an application using script 4.1 and a corresponding Service Principal for the app in 4.2. These scripts output newSpId and appRoleId to variables. You can now assign a user to the new app using 5.1 as long as user_objectid_assigned has been set. 
 
-Finally, you can consent to the user access to "API 1" in script 6. <b>Make sure you set resourceId to be the object id of the "API 1's" service principal.</b>
+Finally, you can consent to the user access to "API 1" in script 6. <b>Make sure you set resourceId to be the object id of the "API 1's" service principal. Please note that I'm only consenting to the API. For users to be able to sign into our new web application I should have consented to User.Read too. I'll update asap.</b>
 
 5.2 will show you the permissions granted to the app.
 
