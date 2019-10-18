@@ -1,0 +1,527 @@
+{
+	"info": {
+		"_postman_id": "4b9d2955-ef00-4bd2-89b0-3dc8fc1271ee",
+		"name": "AdminConsent",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1 Tenant ARM Metadata",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4c35280e-0cea-4974-b652-25d455fa6d32",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Get Login Endpoint\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"tenantAudience\", jsonData.authentication.audiences[0]);",
+							"    pm.environment.set(\"loginEndpoint\", jsonData.authentication.loginEndpoint);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://management.{{location}}.{{fqdn}}/metadata/endpoints?api-version=1.0",
+					"protocol": "https",
+					"host": [
+						"management",
+						"{{location}}",
+						"{{fqdn}}"
+					],
+					"path": [
+						"metadata",
+						"endpoints"
+					],
+					"query": [
+						{
+							"key": "api-version",
+							"value": "1.0"
+						}
+					]
+				},
+				"description": "If you have Azure Stack then the domain will not be azure.com"
+			},
+			"response": []
+		},
+		{
+			"name": "2 Directory Metatdata (AAD)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "08212192-53be-4a32-89fe-22263dc504c8",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"GetTokenEndpoint\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"tokenEndpoint\", jsonData.token_endpoint);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{loginEndpoint}}{{azuread}}/.well-known/openid-configuration",
+					"host": [
+						"{{loginEndpoint}}{{azuread}}"
+					],
+					"path": [
+						".well-known",
+						"openid-configuration"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3 Authenticate SP",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7952d9c2-6dec-43b4-b468-6adb2b9d68b2",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"GetToken\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"accessToken\", jsonData.access_token);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{SPID}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{SPSecret}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "https://graph.microsoft.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{tokenEndpoint}}",
+					"host": [
+						"{{tokenEndpoint}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4.1 Create Application",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "aa7360d8-1ddd-4269-98bc-2a997e920a21",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "5de6162c-c535-49fa-82a1-ae816c6ce7a0",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Get app variables\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"newAppId\", jsonData.appId);",
+							"    pm.environment.set(\"appRoleId\", jsonData.appRoles[0].id);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"displayName\": \"new_web1\",\r\n\t\"appRoles\": [\r\n\t\t{\r\n\t\t\t\"allowedMemberTypes\": [\r\n\t\t\t\t\"User\",\r\n\t\t\t\t\"Application\"\r\n\t\t\t],\r\n\t\t\t\"description\": \"Default access\",\r\n\t\t\t\"displayName\": \"Access App\",\r\n\t\t\t\"id\": \"{{$guid}}\",\r\n\t\t\t\"isEnabled\": true,\r\n\t\t\t\"value\": \"access-app\"\r\n\t\t}\r\n\t],\r\n\t\"requiredResourceAccess\": [\r\n\t\t{\r\n\t\t\t\"resourceAppId\": \"7e482ecf-520f-49cd-90c9-0ec1e13c7a11\",\r\n\t\t\t\"resourceAccess\": [\r\n\t\t\t\t{\r\n\t\t\t\t\t\"id\": \"8fa374f4-9e19-4d76-bddb-82b1f56373c2\",\r\n\t\t\t\t\t\"type\": \"Scope\"\r\n\t\t\t\t}\r\n\t\t\t]\r\n\t\t},\r\n\t\t{\r\n\t\t\t\"resourceAppId\": \"00000003-0000-0000-c000-000000000000\",\r\n\t\t\t\"resourceAccess\": [\r\n\t\t\t\t{\r\n\t\t\t\t\t\"id\": \"e1fe6dd8-ba31-4d61-89e7-88639da4683d\",\r\n\t\t\t\t\t\"type\": \"Scope\"\r\n\t\t\t\t}\r\n\t\t\t]\r\n\t\t}\r\n\t],\r\n\t\"web\": {\r\n\t\t\"redirectUris\": [\"https://localhost\"]\r\n\t},\r\n\t\"signInAudience\": \"AzureADMyOrg\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/applications",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4.2 Create Service Principal for app",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "136f9143-9b1e-4d5a-8b8d-d1587c4a037e",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Get app variables\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"newSpId\", jsonData.id);",
+							"    pm.environment.set(\"appRoleId\", jsonData.appRoles[0].id);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"appId\": \"{{newAppId}}\",\n\t\"appRoleAssignmentRequired\": true,\n\t\"displayName\": \"new_web1\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4.3 AuthN user to get Oid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "cbb4f918-c11a-447f-a2b7-24d07aa4dff2",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Get user's object id\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"user_objectid_assigned\", jsonData.id);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "accessToken",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "tokenType",
+							"value": "Bearer",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://graph.microsoft.com/v1.0/me/",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"v1.0",
+						"me",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5.1 Assign user to new app",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f7698240-db5d-4ee9-877d-8f99e29c83b4",
+						"exec": [
+							"const dateNow= new Date();\r",
+							"pm.environment.set('timestamp', dateNow.toISOString());\r",
+							"// could have used $timestamp maybe"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "5c52f000-4202-4022-9d77-07bd57c95f92",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "Bearer {{accessToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"appRoleId\": \"{{appRoleId}}\",\r\n  \"principalId\": \"{{user_objectid_assigned}}\",\r\n  \"principalType\": \"User\",\r\n  \"resourceId\": \"{{newSpId}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/users/admin@cowenmc.onmicrosoft.com/appRoleAssignments",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"users",
+						"admin@cowenmc.onmicrosoft.com",
+						"appRoleAssignments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5.2 Show oauth2PermissionGrants for new app",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals/{{newSpId}}/oauth2PermissionGrants",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals",
+						"{{newSpId}}",
+						"oauth2PermissionGrants"
+					]
+				},
+				"description": "Optional. List the existing oauth2PermissionGrants for the new service principal created in 4.2. Will be empty until after step 6"
+			},
+			"response": []
+		},
+		{
+			"name": "6 Consent user access to Api1",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f5bd9aea-c5e1-4516-bb8b-223ced867d5c",
+						"exec": [
+							"var date = new Date();\r",
+							"const dateNow= new Date(date.setMonth(date.getMonth()+6));\r",
+							"pm.environment.set('expiry', dateNow.toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"clientId\": \"{{newSpId}}\",\r\n  \"consentType\": \"AllPrincipals\",\r\n  \"principalId\": null,\r\n  \"resourceId\": \"b16cea3d-9d8d-4a14-9a81-e7ce43595eeb\",\r\n  \"scope\": \"Api1-User-Access\",\r\n  \"expiryTime\": \"{{expiry}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/oAuth2Permissiongrants",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"oAuth2Permissiongrants"
+					]
+				},
+				"description": "Create the oauth2PermissionGrant record that is effectively \"admin consent\". This gives all users access to the API from the new app."
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
