@@ -27,7 +27,9 @@ The provisioner app will authN using client credentials to AAD. I have also used
 
 When we create an application registration, "new_web1", via these scripts, we will configure new_web1 to have permision to call the Api1. It is this api that we grant user consent for new_web1 to call on behalf of users. 
 
-3. Import and update the environment variables in Postman
+3. Import the collection json to Postman
+
+4. Import environment json and update the variables in Postman
 
 <b>azuread</b>: change this to your AAD tenant domain.
 
@@ -38,17 +40,17 @@ When we create an application registration, "new_web1", via these scripts, we wi
 <b>user_objectid_assigned</b>: this is the object id of the user you want to assign to new_web1. 
 
 
-For the user_object_assigned variable, you can set this manually via the environment variables but running script 4.3 will get an object id for a user that you authN as. You can configure Postman to sign in as a user by clicking Authorization tab, select OAuth2 in the dropdown and click "get new access token" and configure an app's details in the dialog (use any app you want but you need to set the redirect URI correctly as mentioned above). You can then click "request token" button, sign in, get a token and then click send on the request to graph. The Tests script should then update the variable. 
+For the user_object_assigned variable, you can set this manually via the environment variables but running script 4.3 will get an object id for a user that you authN as. You can configure Postman to sign in as a user by clicking Authorization tab, select OAuth2 in the dropdown and click "get new access token" and configure an app's details in the dialog (use any app you want but you need to set the redirect URI correctly as mentioned above). You can then click "request token" button, sign in, get a token and then click send to call graph. The Tests script should then update the variable for you. 
 
 
 
 # Running the scripts
 
-Run scripts 1 and 2 to set the tokenEndpoint variable. Script 3 will use Client Credentials to aquire an access token that will be persisted in the environment variables (see the Tests script).
+Run scripts 1 and 2 to set the tokenEndpoint variable automatically. Script 3 will use Client Credentials to acquire an access token that will be persisted in the environment variables (see the Tests script).
 
 Create an application using script 4.1 and a corresponding Service Principal for the app in 4.2. These scripts output newSpId and appRoleId to variables. You can now assign a user to the new app using 5.1 as long as user_objectid_assigned has been set. 
 
-Finally, you can consent to the user access to API 1 in script 6. <b>Make sure you set resourceId to be the object id of the API's service principal.</b>
+Finally, you can consent to the user access to "API 1" in script 6. <b>Make sure you set resourceId to be the object id of the "API 1's" service principal.</b>
 
 5.2 will show you the permissions granted to the app.
 
