@@ -10,7 +10,9 @@ If you want to automate the creation of applications in Azure AD rather than usi
 
 These scripts have the following prerequisites.
 
-## 1. A "provisioner" application registered in AAD that has the following permissions. It is this application's responsibility to create applications, assign users and grant consent. <b>It therefore has significant privileges and should be treated as an admin user.</b>
+## 1. A "provisioner" application registered in AAD that has the following permissions. 
+
+It is this application's responsibility to create applications, assign users and grant consent. <b>It therefore has significant privileges and should be treated as an admin user.</b>
 
 AppRoleAssignment.ReadWrite.All (type "Application")
 
@@ -25,7 +27,7 @@ The provisioner app will authN using client credentials to AAD. I have also used
 
 ## 2. An API application registered in AAD that I called Api1. This needs to have a scope, Api1-User-Access, defined under "Expose an api".
 
-When we create an application registration, "new_web1", via these scripts, we will configure new_web1 to have permision to call the Api1. It is this api that we grant user consent for new_web1 to call on behalf of users. 
+When we create an application registration, "new_web1", we will configure new_web1 to have permision to call the Api1. It is this api that we grant user consent for new_web1 to call on behalf of users. 
 
 ## 3. Import the collection json to Postman
 
