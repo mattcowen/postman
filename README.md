@@ -29,10 +29,14 @@ When we create an application registration, "new_web1", via these scripts, we wi
 
 3. Update the environment variables
 
-azuread: change this to your AAD tenant domain.
-SPID: this is the Application ID for the provisioner app.
-SPSecret: provisioner app secret
-user_objectid_assigned: this is the object id of the user you want to assign to new_web1. 
+<b>azuread</b>: change this to your AAD tenant domain.
+
+<b>SPID</b>: this is the Application ID for the provisioner app.
+
+<b>SPSecret</b>: provisioner app secret
+
+<b>user_objectid_assigned</b>: this is the object id of the user you want to assign to new_web1. 
+
 
 For the user_object_assigned variable, you can set this manually via the environment variables but running script 4.3 will get an object id for a user that you authN as. You can configure Postman to sign in as a user by clicking Authorization tab, select OAuth2 in the dropdown and click "get new access token" and configure an app's details in the dialog (use any app you want but you need to set the redirect URI correctly as mentioned above). You can then click "request token" button, sign in, get a token and then click send on the request to graph. The Tests script should then update the variable. 
 
